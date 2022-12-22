@@ -16,23 +16,22 @@ const convertStringToDate = (input) => {
 export default {
   data: new SlashCommandBuilder()
     .setName("query-posts")
-    .setDescription("Search for posts")
+    .setDescription("Search for Khan Academy discussion posts")
 
     // Content
     .addStringOption((option) =>
       option
         .setName("contains")
-        .setDescription("Substring to search for")
-        .setRequired(true)
+        .setDescription(
+          "Substring to search for. If left blank, returns all posts"
+        )
     )
 
     // Case sensitive
     .addBooleanOption((option) =>
       option
         .setName("case_sensitive")
-        .setDescription(
-          "NOT IMPLEMENTED Case sensitive search for `contains` (default: false)"
-        )
+        .setDescription("NOT IMPLEMENTED Case sensitive search for `contains`")
     )
 
     // Discussion type
@@ -121,22 +120,31 @@ export default {
 
     // Prevent SQL injection
     if (
-      content.includes("%") ||
-      content.includes("'") ||
-      content.includes("_")
+      content &&
+      (content.includes("%") || content.includes("'") || content.includes("_"))
     ) {
       await interaction.reply(
-        "Due to security reasons, you can't search for `%`, `'`, or `_` characters. Sorry!"
+        "For security reasons, you can't search for `%`, `'`, or `_` characters. Sorry!"
       );
       return;
     }
 
-    // Create full SQL query and limit to 10 results
-    let sql = `SELECT * FROM posts WHERE content LIKE ${escape(
-      "%" + content.replace(/\%/g, "\\%") + "%"
-    )}`;
+    // Create full SQL query
+    let sql = `SELECT * FROM posts`;
+    // If at least one option is specified, add a WHERE clause
+    if (
+      content !== null ||
+      type !== null ||
+      authorKAID !== null ||
+      programID !== null ||
+      before !== null ||
+      after !== null
+    ) {
+      sql += " WHERE";
+    }
 
     // Add optional filters
+    if (content) sql += ` content LIKE ${escape("%" + content + "%")}`;
     // if (caseSensitive) sql += " AND case_sensitive = 1";
     if (type) sql += ` AND type = ${escape(type)}`;
     if (authorKAID) sql += ` AND authorKaid = ${escape(authorKAID)}`;
@@ -175,8 +183,9 @@ export default {
       }
     }
 
-    // Limit to 100 results
-    sql += " LIMIT 100";
+    // Limit to 100 or 5 results, depending on output format
+    if (outputFormat == "simple") sql += " LIMIT 5";
+    else sql += " LIMIT 100";
 
     // Waiting
     await interaction.reply(`Querying \`${sql}\`...`);
@@ -221,7 +230,8 @@ export default {
 
     // Send simple embed
     if (outputFormat === "simple") {
-      await sendEmbedAboutPost(interaction, rows.slice(0, 10));
+      // Send first 5 results
+      await sendEmbedAboutPost(interaction, rows.slice(0, 5), totalResults);
     }
 
     // Send JSON file (JSON format)
