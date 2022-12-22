@@ -49,6 +49,7 @@ client.db = new sqlite3.Database(PATH_TO_DB, (err) => {
   }
   console.log("Connected to the posts database.");
 });
+client.db.rowCount = 1; // Prevent undefined error
 client.db.query = function (sql, params = []) {
   // Hack to make sqlite3 work with async/await
   var that = this;
@@ -59,6 +60,13 @@ client.db.query = function (sql, params = []) {
     });
   });
 };
+client.db.all("SELECT COUNT(*) FROM posts", [], (err, rows) => {
+  // Count number of rows in client.db total and store that as client.db.totalRows
+  if (err) {
+    throw err;
+  }
+  client.db.rowCount = rows[0]["COUNT(*)"];
+});
 
 // Log in to Discord with your client's token
 client.login(process.env.TOKEN);

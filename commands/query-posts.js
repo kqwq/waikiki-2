@@ -4,6 +4,7 @@ import {
   AttachmentBuilder,
 } from "discord.js";
 import sqlstring from "sqlstring";
+import { sendEmbedAboutPost } from "../util/card.js";
 const { escape } = sqlstring;
 
 const convertStringToDate = (input) => {
@@ -101,10 +102,9 @@ export default {
         .setName("output_format")
         .setDescription("Output format")
         .addChoices(
-          { name: "Interactive (default)", value: "interactive" },
+          { name: "Simple text", value: "simple" },
           { name: "JSON file (.json)", value: "json" },
-          { name: "CSV file (.csv)", value: "csv" },
-          { name: "SQL query text", value: "sql" }
+          { name: "CSV file (.csv)", value: "csv" }
         )
     ),
   async execute(interaction) {
@@ -117,7 +117,7 @@ export default {
     const after = interaction.options.getString("after");
     const sortBy = interaction.options.getString("sort_by");
     const outputFormat =
-      interaction.options.getString("output_format") || "interactive";
+      interaction.options.getString("output_format") || "simple";
 
     // Prevent SQL injection
     if (
@@ -203,18 +203,26 @@ export default {
       latest / 1000
     )}:R>`;
 
-    // Send response
-    console.log(content, type, authorKAID, programID, before, after, sortBy);
+    // Send embed response
     let embed = new EmbedBuilder()
-      .setTitle(`Discussion Post Query`)
+      .setTitle(`Discussion post query`)
       .setDescription(`\`${sql}\``)
       .setColor("0x078FFE");
     embed.addFields({ name: "Count", value: `${totalResults}` });
     embed.addFields({ name: "Date range", value: dateRange });
+    embed.addFields({
+      name: "Percentage",
+      value: `${((totalResults / db.rowCount) * 100).toPrecision(3)}%`,
+    });
     embed.addFields({ name: "Output format", value: outputFormat });
 
     // Send embed (all formats)
     await interaction.editReply({ embeds: [embed], content: "" });
+
+    // Send simple embed
+    if (outputFormat === "simple") {
+      await sendEmbedAboutPost(interaction, rows.slice(0, 10));
+    }
 
     // Send JSON file (JSON format)
     if (outputFormat === "json") {
