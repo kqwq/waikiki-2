@@ -3,6 +3,8 @@ import { Client, Events, GatewayIntentBits } from "discord.js";
 import dotenv from "dotenv";
 import path from "path";
 import fs from "node:fs";
+import sqlite3 from "sqlite3";
+import { PATH_TO_DB } from "./constants.js";
 
 // Config
 dotenv.config();
@@ -39,6 +41,24 @@ for (const file of eventFiles) {
     client.on(event.name, (...args) => event.execute(...args));
   }
 }
+
+// Connect to sqlite3 database
+client.db = new sqlite3.Database(PATH_TO_DB, (err) => {
+  if (err) {
+    return console.error(err.message);
+  }
+  console.log("Connected to the posts database.");
+});
+client.db.query = function (sql, params = []) {
+  // Hack to make sqlite3 work with async/await
+  var that = this;
+  return new Promise(function (resolve, reject) {
+    that.all(sql, params, function (error, rows) {
+      if (error) reject(error);
+      else resolve({ rows: rows });
+    });
+  });
+};
 
 // Log in to Discord with your client's token
 client.login(process.env.TOKEN);

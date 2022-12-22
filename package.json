@@ -1,14 +1,15 @@
 {
   "dependencies": {
     "discord.js": "^14.7.1",
-    "dotenv": "^16.0.3"
+    "dotenv": "^16.0.3",
+    "sqlite3": "^5.1.4",
+    "sqlstring": "^2.3.3"
   },
   "type": "module",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "reg" : "node reg.js"
-  
+    "reg": "node reg.js"
   },
   "license": "ISC"
 }
