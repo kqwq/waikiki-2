@@ -1,10 +1,11 @@
 // Imports
-import { Client, Events, GatewayIntentBits } from "discord.js";
+import { ActivityType, Client, Events, GatewayIntentBits } from "discord.js";
 import dotenv from "dotenv";
 import path from "path";
 import fs from "node:fs";
 import sqlite3 from "sqlite3";
-import { PATH_TO_DB } from "./constants.js";
+import { OPENAI_ORG, PATH_TO_DB } from "./constants.js";
+import { Configuration, OpenAIApi } from "openai";
 
 // Config
 dotenv.config();
@@ -22,8 +23,19 @@ const commandFiles = fs
 for (const file of commandFiles) {
   const filePath = path.join(commandsPath, file);
   const command = await import(filePath).then((command) => command.default);
-  console.log;
   client.commands.set(command.data.name, command);
+}
+
+// Load context commands
+client.contextCommands = new Map();
+const contextCommandsPath = path.join(__dirname, "contextCommands");
+const contextCommandFiles = fs
+  .readdirSync(contextCommandsPath)
+  .filter((file) => file.endsWith(".js"));
+for (const file of contextCommandFiles) {
+  const filePath = path.join(contextCommandsPath, file);
+  const command = await import(filePath).then((command) => command.default);
+  client.contextCommands.set(command.data.name, command);
 }
 
 // Handle events
@@ -62,11 +74,17 @@ client.db.query = function (sql, params = []) {
 };
 client.db.all("SELECT COUNT(*) FROM posts", [], (err, rows) => {
   // Count number of rows in client.db total and store that as client.db.totalRows
-  if (err) {
-    throw err;
-  }
-  client.db.rowCount = rows[0]["COUNT(*)"];
+  if (err) throw err;
+  let count = rows[0]["COUNT(*)"];
+  client.db.rowCount = count;
 });
+
+// Configure OpenAI
+const configuration = new Configuration({
+  organization: OPENAI_ORG,
+  apiKey: process.env.OPENAI_API_KEY,
+});
+client.openai = new OpenAIApi(configuration);
 
 // Log in to Discord with your client's token
 client.login(process.env.TOKEN);

@@ -2,12 +2,13 @@
 // Exlcuding the token, which is stored in a .env file.
 
 const CLIENT_ID = "946846829268598815";
-const MAIN_SERVER_GUILD_ID = "372895163279998976"; // kacc
-// const MAIN_SERVER_GUILD_ID = "946842752807751700"; // web experiments
+// const MAIN_SERVER_GUILD_ID = "372895163279998976"; // kacc
+const MAIN_SERVER_GUILD_ID = "946842752807751700"; // web experiments
 // const PATH_TO_DB =
 //   "../../WE/ka-comment-tracker/storage/2022-12-22T06-55-35.059Z.db";
 
-const PATH_TO_DB =
-  "../../WE/ka-comment-tracker/storage/2022-12-22T08-05-45.129Z.db";
+const OPENAI_ORG = "org-IgJIgeMILE05mV86PX9izzaR";
 
-export { CLIENT_ID, MAIN_SERVER_GUILD_ID, PATH_TO_DB };
+const PATH_TO_DB = "../../WE/ka-comment-tracker/storage/mid_sized_top_951.db";
+
+export { CLIENT_ID, MAIN_SERVER_GUILD_ID, PATH_TO_DB, OPENAI_ORG };

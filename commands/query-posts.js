@@ -10,7 +10,6 @@ const { escape } = sqlstring;
 const convertStringToDate = (input) => {
   if (isNaN(input)) return new Date(input);
   else return new Date(parseInt(input) * 1000);
-  return new Date();
 };
 
 export default {
@@ -102,8 +101,12 @@ export default {
         .setDescription("Output format")
         .addChoices(
           { name: "Simple text", value: "simple" },
-          { name: "JSON file (.json)", value: "json" },
-          { name: "CSV file (.csv)", value: "csv" }
+          { name: "JSON (simple)", value: "json-reduced" },
+          {
+            name: "JSON",
+            value: "json",
+          },
+          { name: "CSV", value: "csv" }
         )
     ),
   async execute(interaction) {
@@ -131,28 +134,20 @@ export default {
 
     // Create full SQL query
     let sql = `SELECT * FROM posts`;
-    // If at least one option is specified, add a WHERE clause
-    if (
-      content !== null ||
-      type !== null ||
-      authorKAID !== null ||
-      programID !== null ||
-      before !== null ||
-      after !== null
-    ) {
-      sql += " WHERE";
-    }
+
+    let sqlFilters = [];
 
     // Add optional filters
-    if (content) sql += ` content LIKE ${escape("%" + content + "%")}`;
+    if (content) sqlFilters.push(`content LIKE ${escape("%" + content + "%")}`);
     // if (caseSensitive) sql += " AND case_sensitive = 1";
-    if (type) sql += ` AND type = ${escape(type)}`;
-    if (authorKAID) sql += ` AND authorKaid = ${escape(authorKAID)}`;
-    if (programID) sql += ` AND programId = ${escape(programID)}`;
+    if (type) sqlFilters.push(`type = ${escape(type)}`);
+    if (authorKAID) sqlFilters.push(`authorKaid = ${escape(authorKAID)}`);
+    if (programID) sqlFilters.push(`programId = ${escape(programID)}`);
     if (before)
-      sql += ` AND date < '${convertStringToDate(before).toISOString()}'`;
+      sqlFilters.push(`date < '${convertStringToDate(before).toISOString()}'`);
     if (after)
-      sql += ` AND date > '${convertStringToDate(after).toISOString()}'`;
+      sqlFilters.push(`date > '${convertStringToDate(after).toISOString()}'`);
+    sql += sqlFilters.length > 0 ? ` WHERE ${sqlFilters.join(" AND ")}` : ""; // Thanks copilot
 
     // Add optional sorting
     if (sortBy) {
@@ -217,7 +212,10 @@ export default {
       .setTitle(`Discussion post query`)
       .setDescription(`\`${sql}\``)
       .setColor("0x078FFE");
-    embed.addFields({ name: "Count", value: `${totalResults}` });
+    embed.addFields({
+      name: "Count",
+      value: `${totalResults.toLocaleString()}`,
+    });
     embed.addFields({ name: "Date range", value: dateRange });
     embed.addFields({
       name: "Percentage",
@@ -243,10 +241,31 @@ export default {
       await interaction.editReply({ files: [file] });
     }
 
+    // Send JSON reduced file (JSON format)
+    if (outputFormat === "json-reduced") {
+      let rowsReduced = rows.map((row) => {
+        let newRow = {
+          programId: row.programId,
+          type: row.type,
+          content: row.content,
+          authorKaid: row.authorKaid,
+          date: row.date,
+          expandKey: row.expandKey,
+        };
+        return newRow;
+      });
+
+      let json = JSON.stringify(rowsReduced, null, 2);
+      let file = new AttachmentBuilder()
+        .setName("ka-posts-reduced.json")
+        .setFile(Buffer.from(json));
+      await interaction.editReply({ files: [file] });
+    }
+
     // Send CSV file (CSV format)
     if (outputFormat === "csv") {
       let csv =
-        "id,parentId,programId,type,content,authorKaid,date,answerCount,replyCount,upvotes,lowQualityScore,flags,key";
+        "id,parentId,programId,type,content,authorKaid,date,answerCount,replyCount,upvotes,lowQualityScore,key,expandKey";
       rows.forEach((row) => {
         csv += `\n${row.id},${row.parentId},${row.programId},${
           row.type

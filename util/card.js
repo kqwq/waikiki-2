@@ -26,18 +26,20 @@ async function sendEmbedAboutPost(
   // Get nicknames from user KAIDs
   for (let post of posts) {
     let userData = await getUserProfile(post.authorKaid);
-    post.authorNickname = userData.nickname || "[error]";
+    post.authorNickname = userData?.nickname || "[error]";
   }
 
   let desc = "";
   for (let post of posts) {
     desc += `<t:${Math.floor(new Date(post.date) / 1000)}:R> **[${capitalize(
       post.type
-    )}](https://khanacademy.org/cs/w/${post.programId}?qa_expand_key=${
-      post.key
-    }) by [${post.authorNickname}](https://khanacademy.org/profile/${
-      post.authorKaid
-    })** — ${shotenContent(post.content.slice(0))}\n`;
+    )}](https://khanacademy.org/computer-programming/w/${
+      post.programId
+    }?qa_expand_key=${post.expandKey}&qa_expand_type=reply) by [${
+      post.authorNickname
+    }](https://khanacademy.org/profile/${post.authorKaid})** — ${shotenContent(
+      post.content.slice(0)
+    )}\n`;
   }
   if (totalCount > posts.length)
     desc += `*…and ${(totalCount - posts.length).toLocaleString()} more*`;
