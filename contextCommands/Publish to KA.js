@@ -13,8 +13,13 @@ export default {
     .setType(ApplicationCommandType.Message),
 
   async execute(interaction) {
-    const msg = interaction.targetMember;
-
+    const msg = interaction.targetMessage;
+    let msgContent = msg.content;
+    // Strip away ```* and ```
+    msgContent = msgContent.replace(/```[a-z]*\n/g, "");
+    msgContent = msgContent.replace(/```/g, "");
+    // Store the code temporarily in the client
+    interaction.client.publishingCode = msgContent.trim();
     // Popup modal with a form for the title
     const modal = new ModalBuilder()
       .setCustomId("publish-modal")

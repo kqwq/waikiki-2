@@ -1,3 +1,5 @@
+import { createProgram, generateKAAS } from "./ka.js";
+
 async function onModalSubmit(interaction) {
   if (interaction.customId !== "publish-modal") return;
   await interaction.deferReply();
@@ -9,7 +11,18 @@ async function onModalSubmit(interaction) {
 
   console.log(title, username, password);
 
-  await interaction.editReply("Published!");
+  let kaas = await generateKAAS(username, password);
+
+  console.log("kaas", kaas);
+
+  let code = interaction.client.publishingCode;
+  let newProgram = await createProgram(title, code, kaas);
+  interaction.client.publishingCode = "[error9001]";
+
+  console.log("newProgram", newProgram);
+
+  let baseUrl = "https://www.khanacademy.org";
+  await interaction.editReply(`Published at ${baseUrl}${newProgram.url}`);
 }
 
 export { onModalSubmit };
