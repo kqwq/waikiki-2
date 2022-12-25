@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <!-- BS 5 -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- Google charts -->
+    <script
+      type="text/javascript"
+      src="https://www.gstatic.com/charts/loader.js"
+    ></script>
+
+    <title>Document</title>
+  </head>
+  <body>
+    <!-- Component that covers entire width and height of page, graident background -->
+    <div class="d-flex flex-column">
+      <div class="p-5 text-white bg-dark">
+        <h1>Khan Academy Discussion Visualized</h1>
+        <p class="lead">
+          A deep dive in Khan Academy's niche programming community
+        </p>
+      </div>
+    </div>
+
+    <!-- Component that contains the main content of the page -->
+    <div class="container">
+      <div class="row mt-5">
+        <div class="col">
+          <h2>Introduction</h2>
+          <p>
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam
+            voluptas, quod, quia, voluptates quae voluptatibus quibusdam
+            voluptatum quos quidem quas quia. Quisquam, quae. Quisquam, quae.
+            Quisquam, quae. Quisquam, quae.
+          </p>
+        </div>
+      </div>
+
+      <div class="row mt-5">
+        <div class="col col-12">
+          <h2>Some basic stats</h2>
+          <p>
+            The following data was collected between December 23, 2022 to
+            January xx, 2022.
+          </p>
+        </div>
+
+        <div class="col col-md-4 col-sm-6 col-12 mt-3">
+          <p class="display-1">1,000</p>
+          <h3>Posts</h3>
+        </div>
+
+        <div class="col col-md-4 col-sm-6 col-12 mt-3">
+          <p class="display-1">1,000</p>
+          <h3>Unique users</h3>
+        </div>
+
+        <div class="col col-md-4 col-sm-6 col-12 mt-3">
+          <p class="display-1">1,000</p>
+          <h3>Upvotes</h3>
+        </div>
+      </div>
+
+      <div class="row mt-5">
+        <h2>Breakdown by post type</h2>
+        <p>
+          This is a breakdown of the number of posts by type. The most common
+        </p>
+        <div id="post-type-chart"></div>
+      </div>
+
+      <div class="row mt-5">
+        <h2>Post length</h2>
+        <p>
+          The average post length was
+          <span id="post-length-average">9,999</span>
+          characters.
+        </p>
+        <div id="post-length-chart"></div>
+      </div>
+
+      <div class="row mt-5">
+        <h2>Program vote / post distribution</h2>
+        <p>
+          The following chart shows the distribution of votes per post for each
+          program.
+        </p>
+        <div id="program-votes-chart"></div>
+
+
+
+    </div>
+
+    <script src="google_charts.js"></script>
+  </body>
+</html>
