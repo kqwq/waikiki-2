@@ -38,9 +38,9 @@ export default {
           "info",
           `${interaction.user.tag} executed ${
             interaction.commandName
-          } with the following options: ${JSON.stringify(
-            interaction.options.data
-          )}`
+          } with the options: ${interaction.options.data
+            .map((option) => `${option.name}: ${option.value}`)
+            .join(", ")}`
         );
       }
 
