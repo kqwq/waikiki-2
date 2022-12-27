@@ -12,7 +12,10 @@ const headerNames = indices.map((i) => headers[i]);
 const outputJson = [headerNames];
 const rows = src[0].rows;
 rows.forEach((row) => {
-  const newRow = indices.map((i) => row[i]);
+  const newRow = indices.map((i) => {
+    if (!isNaN(row[i])) return Number(row[i]);
+    return row[i];
+  });
   outputJson.push(newRow);
 });
 

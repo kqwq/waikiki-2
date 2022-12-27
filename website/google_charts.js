@@ -1,7 +1,15 @@
 google.charts.load("current", { packages: ["corechart"] });
 google.charts.setOnLoadCallback(drawPostTypeChart);
 google.charts.setOnLoadCallback(drawPostLengthChart);
-google.charts.setOnLoadCallback(drawProgramVotesChart);
+
+// Load ./output.json and draw a scatter chart
+let programData = null;
+fetch("./output.json")
+  .then((response) => response.json())
+  .then((json) => {
+    programData = json;
+    google.charts.setOnLoadCallback(drawProgramVotesChart);
+  });
 
 function drawPostTypeChart() {
   var data = google.visualization.arrayToDataTable([
@@ -73,33 +81,62 @@ function drawPostLengthChart() {
 }
 
 function drawProgramVotesChart() {
-  var data = google.visualization.arrayToDataTable([
-    ["Votes", "Discussion count"],
-    [12230, 313],
-    [10353, 242],
-    [9323, 201],
-    [8323, 171],
-    [7323, 141],
-    [6323, 111],
-    [5323, 81],
-    [4323, 51],
-    [3323, 21],
-    [2323, 1],
-  ]);
+  var dataTable = new google.visualization.DataTable();
+
+  // Add columns
+  dataTable.addColumn("number", "Votes");
+  dataTable.addColumn("number", "Discussion count");
+
+  // Add tooltip column
+  dataTable.addColumn({ type: "string", role: "tooltip", p: { html: true } });
+
+  // Add rows
+  dataTable.addRows(
+    programData.slice(1).map((row) => {
+      return [
+        row[5],
+        row[7],
+        `<div style="padding:5px;white-space:nowrap"><b>${row[1]}</b><br>Votes: ${row[5]}<br>Discussion count: ${row[7]}</div>`,
+      ];
+    })
+  );
 
   var options = {
-    title: "Program Votes vs Discussion Count",
+    title: "Semi-log Plot Program Votes vs Discussion Posts",
+    pointSize: 3,
     height: 400,
     width: 700,
     backgroundColor: "#E4E4E4",
-    hAxis: { title: "Votes" },
-    vAxis: { title: "Discussion count" },
+    hAxis: {
+      title: "Votes",
+      logScale: true,
+      viewWindow: {
+        min: 40,
+        max: programData[1][5] * 1.2,
+      },
+    },
+    vAxis: {
+      title: "Discussion posts",
+      logScale: true,
+      viewWindow: {
+        min: programData.at(-1)[7] / 1.2,
+        max: programData[1][7] * 1.2,
+      },
+    },
     legend: "none",
+    tooltip: { isHtml: true },
   };
 
-  var chart = new google.visualization.ScatterChart(
-    document.getElementById("program-votes-chart")
-  );
+  var opts = {
+    containerId: "program-votes-chart",
+    dataTable: dataTable,
+    chartType: "ScatterChart",
+    options: options,
+  };
+  var chartwrapper = new google.visualization.ChartWrapper(opts);
+  // chartwrapper.setView({ columns: [5, 7] });
+  // Show tooltip for column 0
+  // chartwrapper.setOption("tooltip", { trigger: "selection" });
 
-  chart.draw(data, options);
+  chartwrapper.draw();
 }

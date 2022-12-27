@@ -6,8 +6,13 @@ export default {
   execute(client) {
     console.log(`Ready! Logged in as ${client.user.tag}`);
 
-    client.user.setActivity(`${client.db.rowCount.toLocaleString()} comments`, {
-      type: ActivityType.Watching,
-    });
+    setTimeout(() => {
+      client.user.setActivity(
+        `${client.db.rowCount.toLocaleString()} comments`,
+        {
+          type: ActivityType.Watching,
+        }
+      );
+    }, 1000 * 2);
   },
 };
