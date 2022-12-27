@@ -1,6 +1,7 @@
 import { SlashCommandBuilder } from "discord.js";
 import path from "path";
 import fs from "fs";
+import logger from "../util/logger";
 
 const __dirname = path.resolve();
 
@@ -29,6 +30,7 @@ export default {
       client.commands.set(command.data.name, command);
     } catch (error) {
       console.log(error);
+      logger.error("Could not reload command", error);
       return await interaction.reply(
         `Could not reload ${interaction.options.getString("command")}!`
       );

@@ -1,4 +1,5 @@
 import { createProgram, generateKAAS } from "./ka.js";
+import logger from "./logger.js";
 
 async function onModalSubmit(interaction) {
   if (interaction.customId !== "publish-modal") return;
@@ -9,17 +10,17 @@ async function onModalSubmit(interaction) {
   const username = interaction.fields.getTextInputValue("input-username");
   const password = interaction.fields.getTextInputValue("input-password");
 
-  console.log(title, username, password);
+  // console.log(title, username, password);
 
   let kaas = await generateKAAS(username, password);
 
-  console.log("kaas", kaas);
+  logger.notice("kaas", kaas);
 
   let code = interaction.client.publishingCode;
   let newProgram = await createProgram(title, code, kaas);
   interaction.client.publishingCode = "[error9001]";
 
-  console.log("newProgram", newProgram);
+  logger.notice("newProgram", newProgram.url);
 
   let baseUrl = "https://www.khanacademy.org";
   await interaction.editReply(`Published at ${baseUrl}${newProgram.url}`);

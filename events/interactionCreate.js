@@ -1,4 +1,6 @@
 import { Events } from "discord.js";
+import { OWNER_USER_ID } from "../constants.js";
+import logger from "../util/logger.js";
 import { onModalSubmit } from "../util/modal.js";
 
 export default {
@@ -20,10 +22,17 @@ export default {
         );
 
       try {
+        // If the command was executed by another user, log it
+        if (interaction.user.id !== OWNER_USER_ID) {
+          logger.info(
+            `${interaction.user.tag} executed ${interaction.commandName} on ${interaction.targetId}`
+          );
+        }
+
+        // Execute the command
         await command.execute(interaction);
       } catch (error) {
-        console.error(`Error executing ${interaction.commandName}`);
-        console.error(error);
+        logger.error(error);
       }
     }
 
