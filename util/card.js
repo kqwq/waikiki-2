@@ -46,7 +46,7 @@ async function sendEmbedAboutPost(
 
   const embed = new EmbedBuilder().setDescription(desc);
 
-  if (isEditInteraction) {
+  if (isEditInteraction || !interaction.channel) {
     await interaction.editReply({ embeds: [embed] });
   } else {
     await interaction.channel.send({ embeds: [embed] });

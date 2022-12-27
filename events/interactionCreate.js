@@ -22,13 +22,6 @@ export default {
         );
 
       try {
-        // If the command was executed by another user, log it
-        if (interaction.user.id !== OWNER_USER_ID) {
-          logger.info(
-            `${interaction.user.tag} executed ${interaction.commandName} on ${interaction.targetId}`
-          );
-        }
-
         // Execute the command
         await command.execute(interaction);
       } catch (error) {
@@ -38,6 +31,18 @@ export default {
 
     if (interaction.isChatInputCommand()) {
       const command = interaction.client.commands.get(interaction.commandName);
+
+      // If the command was executed by another user, log it
+      if (interaction.user.id !== OWNER_USER_ID) {
+        logger.log(
+          "info",
+          `${interaction.user.tag} executed ${
+            interaction.commandName
+          } with the following options: ${JSON.stringify(
+            interaction.options.data
+          )}`
+        );
+      }
 
       if (!command)
         return console.error(

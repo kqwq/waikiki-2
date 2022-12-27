@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from "discord.js";
 import path from "path";
 import fs from "fs";
-import logger from "../util/logger";
+import logger from "../util/logger.js";
 
 const __dirname = path.resolve();
 

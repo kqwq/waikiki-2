@@ -14,15 +14,15 @@ async function onModalSubmit(interaction) {
 
   let kaas = await generateKAAS(username, password);
 
-  logger.notice("kaas", kaas);
+  logger.log("warn", `kaas: ${kaas}`);
 
   let code = interaction.client.publishingCode;
   let newProgram = await createProgram(title, code, kaas);
   interaction.client.publishingCode = "[error9001]";
 
-  logger.notice("newProgram", newProgram.url);
-
   let baseUrl = "https://www.khanacademy.org";
+  logger.log("warn", `newProgram: ${baseUrl}${newProgram.url}`);
+
   await interaction.editReply(`Published at ${baseUrl}${newProgram.url}`);
 }
 
