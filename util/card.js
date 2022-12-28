@@ -10,8 +10,8 @@ const shortenKaid = (kaid) => {
 };
 
 const shotenContent = (content) => {
-  if (content.length > 800) {
-    return content.slice(0, 800 - 3) + "[…]";
+  if (content.length > 500) {
+    return content.slice(0, 500 - 3) + "[…]";
   } else {
     return content;
   }
@@ -44,12 +44,13 @@ async function sendEmbedAboutPost(
   if (totalCount > posts.length)
     desc += `*…and ${(totalCount - posts.length).toLocaleString()} more*`;
 
-  const embed = new EmbedBuilder().setDescription(desc);
+  const embed = new EmbedBuilder().setDescription(desc.slice(0, 4090));
 
-  if (isEditInteraction || !interaction.channel) {
+  if (isEditInteraction) {
     await interaction.editReply({ embeds: [embed] });
   } else {
-    await interaction.channel.send({ embeds: [embed] });
+    if (!interaction.channel) await interaction.followUp({ embeds: [embed] });
+    else await interaction.channel.send({ embeds: [embed] });
   }
 }
 
