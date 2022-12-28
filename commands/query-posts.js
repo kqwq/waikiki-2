@@ -84,13 +84,14 @@ export default {
         .setName("sort_by")
         .setDescription("Sort by")
         .addChoices(
-          { name: "Date (Newest)", value: "date-old" },
-          { name: "Date (Oldest)", value: "date-new" },
+          { name: "Date (Newest) - Default", value: "date-new" },
+          { name: "Date (Oldest)", value: "date-old" },
           { name: "Length (Shortest)", value: "length-short" },
           { name: "Length (Longest)", value: "length-long" },
           { name: "Upvotes (Most)", value: "upvotes-most" },
           { name: "Replies (Most)", value: "replies-most" },
-          { name: "Randomized", value: "random" }
+          { name: "Randomized", value: "random" },
+          { name: "Position on Top List", value: "position" }
         )
     )
 
@@ -106,7 +107,8 @@ export default {
             name: "JSON",
             value: "json",
           },
-          { name: "CSV", value: "csv" }
+          { name: "CSV", value: "csv" },
+          { name: "None", value: "none" }
         )
     ),
   async execute(interaction) {
@@ -117,7 +119,7 @@ export default {
     const programID = interaction.options.getString("program_id");
     const before = interaction.options.getString("before");
     const after = interaction.options.getString("after");
-    const sortBy = interaction.options.getString("sort_by");
+    const sortBy = interaction.options.getString("sort_by") || "date-new";
     const outputFormat =
       interaction.options.getString("output_format") || "simple";
 
@@ -148,15 +150,16 @@ export default {
     if (after)
       sqlFilters.push(`date > '${convertStringToDate(after).toISOString()}'`);
     sql += sqlFilters.length > 0 ? ` WHERE ${sqlFilters.join(" AND ")}` : ""; // Thanks copilot
+    let sqlWithFiltersOnly = "" + sql;
 
     // Add optional sorting
     if (sortBy) {
       switch (sortBy) {
         case "date-old":
-          sql += " ORDER BY date DESC";
+          sql += " ORDER BY date ASC";
           break;
         case "date-new":
-          sql += " ORDER BY date ASC";
+          sql += " ORDER BY date DESC";
           break;
         case "length-short":
           // Order by length of content
@@ -175,11 +178,16 @@ export default {
         case "random":
           sql += " ORDER BY RANDOM()";
           break;
+        case "position":
+          break;
+        default:
+          break;
       }
     }
 
     // Limit to 100 or 5 results, depending on output format
-    if (outputFormat == "simple") sql += " LIMIT 5";
+    if (outputFormat == "none") sql += " LIMIT 1";
+    else if (outputFormat == "simple") sql += " LIMIT 5";
     else sql += " LIMIT 100";
 
     // Waiting
@@ -191,18 +199,17 @@ export default {
     if (rows.length == 0) return interaction.followUp("No results found.");
 
     // Count number of results
-    let countSql = sql.replace("SELECT *", "SELECT COUNT(*)");
+    let countSql = sqlWithFiltersOnly.replace("SELECT *", "SELECT COUNT(*)");
     let response = await db.query(countSql);
     let totalResults = response.rows[0]["COUNT(*)"];
 
     // Calculate date range
-    let earliest = new Date(rows[0].date);
-    let latest = new Date(rows[0].date);
-    rows.forEach((row) => {
-      let date = new Date(row.date);
-      if (date < earliest) earliest = date;
-      if (date > latest) latest = date;
-    });
+    let earliestSql = sqlWithFiltersOnly + " ORDER BY date ASC LIMIT 1";
+    let latestSql = sqlWithFiltersOnly + " ORDER BY date DESC LIMIT 1";
+    let res = await db.query(earliestSql);
+    let earliest = new Date(res.rows[0].date);
+    res = await db.query(latestSql);
+    let latest = new Date(res.rows[0].date);
     let dateRange = `<t:${Math.floor(earliest / 1000)}:R> - <t:${Math.floor(
       latest / 1000
     )}:R>`;
