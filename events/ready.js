@@ -15,6 +15,6 @@ export default {
           type: ActivityType.Watching,
         }
       );
-    }, 1000 * 2);
+    }, 1000 * 5);
   },
 };

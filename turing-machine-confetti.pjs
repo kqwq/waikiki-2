@@ -1,0 +1,199 @@
+var tape = ["B", "B", 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, "B", "B"];
+
+var controlUnitFunctions = [
+  // 0: If in state...
+  // 1: If reads in...
+  // 2: Go to state
+  // 3: Write a
+  // 4: Move L/R (left/right)
+  ["s0", 0, "s1", "M", "R"],
+  ["s1", 0, "s1", 0, "R"],
+  ["s1", 1, "s1", 1, "R"],
+  ["s1", "M", "s2", "M", "L"],
+  ["s1", "B", "s2", "B", "L"],
+  ["s2", 1, "s3", "M", "L"],
+  ["s3", 1, "s3", 1, "L"],
+  ["s3", 0, "s4", 0, "L"],
+  ["s3", "M", "s5", "M", "R"],
+  ["s4", 0, "s4", 0, "L"],
+  ["s4", "M", "s0", "M", "R"],
+  ["s5", "M", "s6", "M", "R"],
+];
+
+var cuf = controlUnitFunctions;
+var initPos = 2; // Initial position
+var initState = "s0"; // Initial state
+var finalState = "s6"; // Final state
+
+var pos = initPos; // Current position
+var state = initState; // Current state
+var posDraw = pos;
+
+// graphics
+var isConfetti = false;
+var tapeWidth = 32;
+var tapeHeight = 33;
+textSize(18);
+
+function ConfettiManager() {
+  this.xs = [];
+  this.ys = [];
+  this.dxs = [];
+  this.dys = [];
+  this.rs = [];
+  this.drx = [];
+  this.colors = [];
+  this.numConfetti = 0;
+  this.maxConfetti = 200;
+  this.addConfetti = function () {
+    if (this.numConfetti < this.maxConfetti) {
+      this.xs.push(random(0, width));
+      this.ys.push(random(0, height));
+      this.dxs.push(random(-1, 1));
+      this.dys.push(random(-1, 1));
+      this.rs.push(random(0, 360));
+      this.drx.push(random(-10, 10));
+      this.colors.push(color(random(0, 255), random(0, 255), random(0, 255)));
+      this.numConfetti++;
+    }
+  };
+  this.update = function () {
+    for (var i = 0; i < this.numConfetti; i++) {
+      this.xs[i] += this.dxs[i];
+      this.ys[i] += this.dys[i];
+      this.rs[i] += this.drx[i];
+
+      // Add gravity
+      this.dys[i] += 0.1;
+
+      // Check if it's out of bounds
+      if (
+        this.xs[i] < 0 ||
+        this.xs[i] > width ||
+        this.ys[i] < 0 ||
+        this.ys[i] > height
+      ) {
+        this.xs.splice(i, 1);
+        this.ys.splice(i, 1);
+        this.dxs.splice(i, 1);
+        this.dys.splice(i, 1);
+        this.rs.splice(i, 1);
+        this.drx.splice(i, 1);
+        this.colors.splice(i, 1);
+        this.numConfetti--;
+        i -= 1;
+      }
+    }
+  };
+}
+var c = new ConfettiManager();
+
+function nextStep() {
+  // Search through states and find the next one
+  // Use the println function to print to the console
+  var isRecognized = false;
+  for (var i = 0; i < cuf.length; i++) {
+    if (cuf[i][0] === state && cuf[i][1] === tape[pos]) {
+      // Found the next state
+      isRecognized = true;
+      state = cuf[i][2];
+      tape[pos] = cuf[i][3];
+      if (cuf[i][4] === "L") {
+        println("Moving left, state = " + state);
+        pos--;
+      } else {
+        println("Moving right, state = " + state);
+        pos++;
+      }
+      break;
+    }
+  }
+  if (!isRecognized) {
+    if (state === finalState) {
+      println("Accepted");
+      isConfetti = true;
+      // playSound(getSound("retro/coin"));
+    } else {
+      println("Not recognized");
+    }
+  }
+}
+
+var speed = 0.04;
+
+draw = function () {
+  background(255);
+
+  // Visualize it
+
+  // Draw tape
+
+  // If away 2+ blocks, move like a spring
+  if (abs(posDraw - pos) > 2) {
+    posDraw += (pos - posDraw) / 20;
+  } else if (posDraw < pos - speed) {
+    posDraw += speed;
+  } else if (posDraw > pos + speed) {
+    posDraw -= speed;
+  } else {
+    posDraw = pos;
+  }
+  for (var i = 0; i < tape.length; i++) {
+    var x = (i - posDraw) * tapeWidth + width / 2;
+    var y = height / 2;
+    // Color code based on state. If it's 0, make it gray, if it's 1, make it white, if B, make is blue, if M, make it green
+    if (tape[i] === 0) {
+      fill(200);
+    } else if (tape[i] === 1) {
+      fill(255);
+    } else if (tape[i] === "B") {
+      fill(0, 0, 255);
+    } else if (tape[i] === "M") {
+      fill(0, 255, 0);
+    }
+
+    strokeWeight(2);
+    stroke(0);
+    rect(x, y, tapeWidth, tapeHeight);
+    fill(0);
+    text(tape[i], x + 10, y + 23);
+  }
+
+  // Draw reader part
+  var w = 19;
+  var h = -16;
+  var x = width / 2 + tapeWidth / 2 - w / 2;
+  var y = height / 2;
+  // draw house polygon
+
+  noStroke();
+  fill(255, 0, 0);
+  rect(x, y, w, h);
+  angleMode = "radians";
+
+  triangle(x, y, x + w / 2, y - h / 2, x + w, y);
+
+  if (isConfetti) {
+    c.addConfetti();
+    c.update();
+    for (var i = 0; i < c.numConfetti; i++) {
+      var dx = cos(radians(c.rs[i])) * 10;
+      var dy = sin(radians(c.rs[i])) * 10;
+      var x1 = c.xs[i] + dx;
+      var y1 = c.ys[i] + dy;
+      var x2 = c.xs[i] - dx;
+      var y2 = c.ys[i] - dy;
+      stroke(c.colors[i]);
+      strokeWeight(7);
+      strokeCap(SQUARE);
+      line(x1, y1, x2, y2);
+    }
+  }
+};
+
+mouseClicked = function () {
+  nextStep();
+};
+keyPressed = function () {
+  nextStep();
+};
